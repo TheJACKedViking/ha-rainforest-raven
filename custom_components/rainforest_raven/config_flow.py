@@ -22,7 +22,11 @@ from homeassistant.helpers.selector import (
 )
 from homeassistant.helpers.service_info.usb import UsbServiceInfo
 
-from .const import DEFAULT_NAME, DOMAIN, TIMEOUT_DEVICE_CONNECT
+import logging
+
+from .const import DEFAULT_NAME, DOMAIN, TIMEOUT_DEVICE_SETUP
+
+_LOGGER = logging.getLogger(__name__)
 
 
 def _format_id(value: str | int) -> str:
@@ -49,20 +53,26 @@ class RainforestRavenConfigFlow(ConfigFlow, domain=DOMAIN):
 
     async def _validate_device(self, dev_path: str) -> None:
         self._abort_if_unique_id_configured(updates={CONF_DEVICE: dev_path})
+        _LOGGER.debug("Validating RAVEn device at %s (timeout=%ss)", dev_path, TIMEOUT_DEVICE_SETUP)
         async with (
-            asyncio.timeout(TIMEOUT_DEVICE_CONNECT),
+            asyncio.timeout(TIMEOUT_DEVICE_SETUP),
             RAVEnSerialDevice(dev_path) as raven_device,
         ):
+            _LOGGER.debug("Device opened, synchronizing...")
             await raven_device.synchronize()
+            _LOGGER.debug("Synchronized, requesting meter list...")
             meters = await raven_device.get_meter_list()
+            _LOGGER.debug("Got meter list: %s", meters)
             if meters:
                 for meter in meters.meter_mac_ids or ():
+                    _LOGGER.debug("Querying meter info for %s...", meter.hex())
                     meter_info = await raven_device.get_meter_info(meter=meter)
                     if meter_info and (
                         meter_info.meter_type is None
                         or meter_info.meter_type == MeterType.ELECTRIC
                     ):
                         self._meter_macs.add(meter.hex())
+            _LOGGER.debug("Validation complete, found meters: %s", self._meter_macs)
         self._dev_path = dev_path
 
     async def async_step_meters(

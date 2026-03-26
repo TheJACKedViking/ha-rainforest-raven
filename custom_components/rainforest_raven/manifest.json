@@ -5,7 +5,7 @@
   "config_flow": true,
   "dependencies": ["usb"],
   "documentation": "https://github.com/TheJACKedViking/ha-rainforest-raven",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "integration_type": "hub",
   "iot_class": "local_polling",
   "requirements": ["aioraven==0.7.1"],
