@@ -22,7 +22,7 @@ from homeassistant.helpers.selector import (
 )
 from homeassistant.helpers.service_info.usb import UsbServiceInfo
 
-from .const import DEFAULT_NAME, DOMAIN
+from .const import DEFAULT_NAME, DOMAIN, TIMEOUT_DEVICE_CONNECT
 
 
 def _format_id(value: str | int) -> str:
@@ -50,7 +50,7 @@ class RainforestRavenConfigFlow(ConfigFlow, domain=DOMAIN):
     async def _validate_device(self, dev_path: str) -> None:
         self._abort_if_unique_id_configured(updates={CONF_DEVICE: dev_path})
         async with (
-            asyncio.timeout(5),
+            asyncio.timeout(TIMEOUT_DEVICE_CONNECT),
             RAVEnSerialDevice(dev_path) as raven_device,
         ):
             await raven_device.synchronize()
