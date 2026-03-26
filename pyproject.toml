@@ -1,0 +1,8 @@
+[project]
+name = "ha-rainforest-raven"
+version = "1.0.0"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+pythonpath = ["custom_components"]
+testpaths = ["tests"]
